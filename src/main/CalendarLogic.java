@@ -1,8 +1,11 @@
 package main;
 
+import java.io.*;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 public class CalendarLogic {
@@ -14,6 +17,7 @@ public class CalendarLogic {
     }
 
     Scanner scanner = new Scanner(System.in);
+
     public void addEvent() throws ParseException {
         System.out.println("Podaj nazwę wydarzenia");
         String name = scanner.nextLine();
@@ -35,7 +39,7 @@ public class CalendarLogic {
         eventSet.add(event);
     }
 
-    public void removeEvent () throws ParseException {
+    public void removeEvent() throws ParseException {
         System.out.println("Podaj nazwę i datę wydarzenia, które chcesz usunąć");
         String name = scanner.nextLine();
         String stringDate = scanner.nextLine();
@@ -50,7 +54,7 @@ public class CalendarLogic {
         eventSet.remove(searchingEvent);
     }
 
-    public void removeEvent (String name, String stringDate) throws ParseException {
+    public void removeEvent(String name, String stringDate) throws ParseException {
         Date date = new SimpleDateFormat("dd/MM/yyyy").parse(stringDate);
 
         Event searchingEvent = eventSet
@@ -62,7 +66,7 @@ public class CalendarLogic {
         eventSet.remove(searchingEvent);
     }
 
-    public void showEventByName (String name){
+    public void showEventByName(String name) {
         Event searchingEvent = eventSet
                 .stream()
                 .filter(event -> event.getName().equals(name))
@@ -71,17 +75,50 @@ public class CalendarLogic {
 
         System.out.println(searchingEvent);
     }
-    public void showAllEvents (){
+
+    public void showAllEvents() {
         eventSet.stream().forEach(System.out::println);
     }
 
-    public void filterEvent (){}
+    public void filterEvent() {
+    }
 
-    public void importEvents (){}
+    public Set<Event> importEvents(String path) {
+        Set<Event> newSet = new TreeSet<>();
 
-    public void exportEvents (){}
+        try {
+            Reader reader = new FileReader(path);
+            BufferedReader bf = new BufferedReader(reader);
+            String line = bf.readLine();
 
-    public Set <Event> getEventSet (){
+            while (line != null) {
+                String[] modelAttributes = line.split(",");
+
+                Event event = createEvent(modelAttributes);
+                eventSet.add(event);
+                line = bf.readLine();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return newSet;
+    }
+
+    private Event createEvent(String[] modelAttributes) {
+        String name = modelAttributes[0];
+        Date date = Date.from(Instant.parse(modelAttributes[1]));
+        Time time = Time.valueOf(modelAttributes[2]);
+        Duration duration = Duration.parse(modelAttributes[3]);
+        EventType type = EventType.valueOf(modelAttributes[4].toUpperCase());
+        return new Event(name, date, time, duration, type);
+    }
+
+    public void exportEvents() {
+    }
+
+    public Set<Event> getEventSet() {
         return eventSet;
     }
 }
